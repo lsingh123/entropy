@@ -16,7 +16,7 @@ import csv
 
 class Cacher:
     
-    def __init__(self, outfile="owners.csv", sources=['192.168.2.4', '192.168.2.3']):
+    def __init__(self, outfile="owners2.csv", sources=['192.168.2.4']):
         self.domains = {}
         self.outfile=outfile
         self.sources = sources
@@ -61,11 +61,10 @@ class Cacher:
                 w.writerow([domain, self.domains[domain]])
 
     def main(self):
-        files = os.listdir(os.getcwd()+"/data")
-        files.remove(".DS_Store")
+        files = os.listdir(os.getcwd()+"/data/round2")
         for file in files:
             try:
-                self.getOwners(self.getDest("data/"+file))
+                self.getOwners(self.getDest("data/round2/"+file))
             except Exception as ex:
                 print(ex, file)
         self.cache_owners()

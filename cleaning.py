@@ -26,26 +26,38 @@ def get_device(source):
 
 def get_dest():
     destinations = {}
-    with open("owners.csv", "r") as inf:
+    with open("owners2.csv", "r") as inf:
         reader = csv.reader(inf, delimiter=',', quotechar = '"')
         for row in reader:
             destinations.update({row[0]: row[1]})
     return destinations
-        
+      
 def get_app(filename):
     start = filename.find("nexus")
     if start == -1:
         start = filename.find("iphone") + 6
     else:
         start += 5
-    return filename[start:filename.find(".")-1]
+    return filename[start:filename.find(".")]
 
+def load_categories():
+    with open("sampling_2.csv", "r", ) as inf:
+        reader = csv.reader(inf)
+        next(reader)
+        
+        categories = {}
+        
+        for line in reader:
+            categories.update({get_app(line[0]) + "2":line[4].replace(" ", "").lower()})  
+    return categories
+    
 def extract_data(file):
+                     
     
     destinations = get_dest()
+    categories = load_categories()
     
-    
-    with open(file, "rb") as fp, open("parsed.csv", "a") as outf:
+    with open(file, "rb") as fp, open("parsed_2.csv", "a") as outf:
         app = get_app(file)
         w = csv.writer(outf, delimiter= ',', quotechar = '"', 
                            quoting = csv.QUOTE_MINIMAL)
@@ -61,21 +73,24 @@ def extract_data(file):
                 if isinstance(pl1, IP):
                     # for some reason I get a scapy library error unless I break
                     # this if statement into two separate ones - wtf
-                    if pl1.src == '192.168.2.4' or pl1.src == '192.168.2.3':
+                    if pl1.src == '192.168.2.4':
                         data = [pl1.src, pl1.dst, destinations[pl1.dst], 
                                   parse_summary(pl1.mysummary()), get_device(pl1.src),
-                                  pl1.len, app]
+                                  pl1.len, app, categories[app]]
                         w.writerow(data)
 
 def write_data():
-    files = os.listdir(os.getcwd()+"/data")
-    files.remove(".DS_Store")
-    with open("parsed.csv", "w") as outf:
+    
+    load_categories()
+    files = os.listdir(os.getcwd()+"/data/round2")
+    with open("parsed_2.csv", "w") as outf:
         w = csv.writer(outf, delimiter= ',', quotechar = '"', 
                            quoting = csv.QUOTE_MINIMAL)
-        w.writerow(["source", "dest_ip", "dest_owner", "type", "operating system", "length", "app"])
+        w.writerow(["source", "dest_ip", "dest_owner", "type", "operating system", "length", "app", "category"])
     for file in files:
         print(file)
-        extractData("data/" + file)
-    
+        extract_data("data/round2/" + file)
+        
 
+if __name__ == '__main__':
+    write_data()
